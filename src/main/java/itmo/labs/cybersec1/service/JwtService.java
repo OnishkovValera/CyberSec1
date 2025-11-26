@@ -24,7 +24,6 @@ public class JwtService {
     public JwtService(
             @Value("${app.jwt.secret}") String secret,
             @Value("${app.jwt.expiration-ms:3600000}") long expirationMillis) {
-        // Compute in locals first; assign to fields only after success to avoid partial initialization.
         SecretKey derivedKey;
         long exp = expirationMillis;
         try {
@@ -34,8 +33,6 @@ public class JwtService {
             byte[] keyBytes = Decoders.BASE64.decode(secret);
             derivedKey = Keys.hmacShaKeyFor(keyBytes);
         } catch (RuntimeException ex) {
-            // Do not fail the constructor to satisfy static analysis and allow app startup for non-prod envs.
-            // Fallback to a generated key and log a warning. In production, provide a valid BASE64 secret.
             log.warn("Invalid JWT secret provided. Falling back to a generated key. Please set a valid BASE64-encoded 256-bit key in app.jwt.secret.", ex);
             derivedKey = Jwts.SIG.HS256.key().build();
         }
